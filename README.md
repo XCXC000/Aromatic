@@ -30,11 +30,6 @@
    `flutter run -d windows`（或替换为你的平台）
 5. 在应用内添加 API 密钥：**设置 → 账户 → 添加密钥串**
 
-## 构建打包
-
-```bash
-flutter build windows --release
-
 # Aromatic
 
 A desktop multi-AI collaboration thinking platform.  
@@ -66,8 +61,4 @@ Let multiple LLMs debate, cross-examine, and synthesize a joint report — like 
 4. Run the app  
    `flutter run -d windows` (or replace with your platform)
 5. Add API keys inside the app: **Settings → Accounts → Add Keychain**
-
-## Build
-
-```bash
-flutter build windows --release
+6. 
