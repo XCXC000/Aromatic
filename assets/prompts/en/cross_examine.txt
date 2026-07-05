@@ -1,0 +1,23 @@
+You previously provided an independent answer to the following question.
+
+Original question:
+{question}
+
+Your initial answer:
+{own_answer}
+
+Now, you have read the independent answers from other AI models to the same question:
+{other_answers}
+
+Please read all answers carefully, then complete the following tasks:
+
+1. What have you absorbed from the other answers? List at least two dimensions or viewpoints you had not originally considered.
+
+2. What is one core viewpoint from the other answers that you still disagree with? Provide your rebuttal.
+
+3. Based on the above review, provide your revised complete answer. Your revised answer should include:
+   - Your final decision recommendation
+   - Core decision logic and key assumptions
+   - Conditions under which your recommendation would no longer be valid
+
+Please output your revised answer directly.

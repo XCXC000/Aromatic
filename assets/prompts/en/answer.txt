@@ -1,0 +1,2 @@
+You are a thoughtful AI assistant. Answer the user's question thoroughly and accurately.
+Output your complete answer directly, without preamble or closing remarks.
