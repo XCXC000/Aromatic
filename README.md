@@ -22,8 +22,6 @@
 
 ## 快速开始
 
-1. 克隆仓库  
-   `git clone https://github.com/你的用户名/aromatic.git`
 2. 安装 Flutter SDK（3.x）  
    [Flutter 安装指南](https://docs.flutter.cn/get-started/install)
 3. 安装依赖  
@@ -61,8 +59,6 @@ Let multiple LLMs debate, cross-examine, and synthesize a joint report — like 
 
 ## Getting Started
 
-1. Clone the repository  
-   `git clone https://github.com/your-username/aromatic.git`
 2. Install Flutter SDK (3.x)  
    [Flutter installation guide](https://docs.flutter.dev/get-started/install)
 3. Install dependencies  
