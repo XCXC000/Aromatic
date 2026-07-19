@@ -4,6 +4,7 @@ import 'dart:io';
 import '../theme/app_theme.dart';
 import '../models/conversation.dart';
 import '../services/conversation_service.dart';
+import '../l10n/app_localizations.dart';
 
 class ConversationLibraryScreen extends StatefulWidget {
   const ConversationLibraryScreen({super.key});
@@ -13,8 +14,7 @@ class ConversationLibraryScreen extends StatefulWidget {
       _ConversationLibraryScreenState();
 }
 
-class _ConversationLibraryScreenState
-    extends State<ConversationLibraryScreen> {
+class _ConversationLibraryScreenState extends State<ConversationLibraryScreen> {
   final _svc = ConversationService();
   List<Conversation> _conversations = [];
   Conversation? _selected;
@@ -40,20 +40,26 @@ class _ConversationLibraryScreenState
   }
 
   Future<void> _deleteConversation(Conversation conv) async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("删除对话"),
-        content: Text("确定删除「${conv.title}」？"),
+        title: Text(l10n.get('deleteConversationTitle')),
+        content: Text(
+          l10n
+              .get('deleteConversationConfirm')
+              .replaceAll('{title}', conv.title),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text("取消")),
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.get('cancel')),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: FilledButton.styleFrom(
-                  backgroundColor: AromaticTheme.error),
-              child: const Text("删除")),
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: AromaticTheme.error),
+            child: Text(l10n.get('delete')),
+          ),
         ],
       ),
     );
@@ -65,10 +71,12 @@ class _ConversationLibraryScreenState
   }
 
   Future<void> _export(Conversation conv, String format) async {
+    final l10n = AppLocalizations.of(context);
     final content = format == 'md'
         ? _svc.exportToMarkdown(conv)
         : _svc.exportToText(conv);
-    final home = Platform.environment['USERPROFILE'] ??
+    final home =
+        Platform.environment['USERPROFILE'] ??
         Platform.environment['HOME'] ??
         Directory.current.path;
     final dir = Directory('$home${Platform.pathSeparator}Aromatic_exports');
@@ -77,20 +85,26 @@ class _ConversationLibraryScreenState
     final file = File('${dir.path}/$safeName.$format');
     await file.writeAsString(content, flush: true);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("已导出到: ${file.path}"),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            l10n.get('exportSuccess').replaceAll('{path}', file.path),
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final brightness = Theme.of(context).brightness;
     final isDark = brightness == Brightness.dark;
-    final gradient =
-        isDark ? AromaticTheme.bgGradientDark : AromaticTheme.bgGradientLight;
+    final gradient = isDark
+        ? AromaticTheme.bgGradientDark
+        : AromaticTheme.bgGradientLight;
     final colors = AromaticTheme.of(context);
 
     return Scaffold(
@@ -98,60 +112,86 @@ class _ConversationLibraryScreenState
       body: Container(
         decoration: BoxDecoration(gradient: gradient),
         child: SafeArea(
-          child: Column(children: [
-            _buildHeader(context, colors),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : Row(children: [
-                      _buildLeftPanel(colors, isDark),
-                      Container(
-                          width: 1,
-                          color: colors.border.withValues(alpha: 0.4)),
-                      _buildRightPanel(colors),
-                    ]),
-            ),
-          ]),
+          child: Column(
+            children: [
+              _buildHeader(context, colors, l10n),
+              Expanded(
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : Row(
+                        children: [
+                          _buildLeftPanel(colors, isDark, l10n),
+                          Container(
+                            width: 1,
+                            color: colors.border.withValues(alpha: 0.4),
+                          ),
+                          _buildRightPanel(colors, l10n),
+                        ],
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, AromaticColors colors) {
+  Widget _buildHeader(
+    BuildContext context,
+    AromaticColors colors,
+    AppLocalizations l10n,
+  ) {
     final brightness = Theme.of(context).brightness;
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: AromaticTheme.spaceMD,
-            vertical: AromaticTheme.spaceSM + 2),
+          horizontal: AromaticTheme.spaceMD,
+          vertical: AromaticTheme.spaceSM + 2,
+        ),
         decoration: AromaticTheme.barDecoration(brightness),
-        child: Row(children: [
-          InkWell(
+        child: Row(
+          children: [
+            InkWell(
               onTap: () => Navigator.pop(context),
               borderRadius: BorderRadius.circular(20),
               child: Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: Icon(Icons.arrow_back_rounded,
-                      size: 20, color: colors.textSecondary))),
-          const SizedBox(width: AromaticTheme.spaceSM),
-          Text("对话库",
+                padding: const EdgeInsets.all(6),
+                child: Icon(
+                  Icons.arrow_back_rounded,
+                  size: 20,
+                  color: colors.textSecondary,
+                ),
+              ),
+            ),
+            const SizedBox(width: AromaticTheme.spaceSM),
+            Text(
+              l10n.get('conversations'),
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textPrimary)),
-        ]),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildLeftPanel(AromaticColors colors, bool isDark) {
+  Widget _buildLeftPanel(
+    AromaticColors colors,
+    bool isDark,
+    AppLocalizations l10n,
+  ) {
     if (_conversations.isEmpty) {
       return SizedBox(
         width: 280,
         child: Center(
-          child: Text("暂无对话记录",
-              style: TextStyle(color: colors.textMuted, fontSize: 13)),
+          child: Text(
+            l10n.get('noConversations'),
+            style: TextStyle(color: colors.textMuted, fontSize: 13),
+          ),
         ),
       );
     }
@@ -175,25 +215,30 @@ class _ConversationLibraryScreenState
             child: ListTile(
               dense: true,
               contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AromaticTheme.spaceSM, vertical: 2),
-              title: Text(conv.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.normal,
-                      color: selected
-                          ? colors.accent
-                          : colors.textPrimary)),
+                horizontal: AromaticTheme.spaceSM,
+                vertical: 2,
+              ),
+              title: Text(
+                conv.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  color: selected ? colors.accent : colors.textPrimary,
+                ),
+              ),
               subtitle: Text(
                 _formatDate(conv.updatedAt),
                 style: TextStyle(fontSize: 11, color: colors.textMuted),
               ),
               trailing: selected
                   ? PopupMenuButton<String>(
-                      icon: Icon(Icons.more_horiz,
-                          size: 16, color: colors.textMuted),
+                      icon: Icon(
+                        Icons.more_horiz,
+                        size: 16,
+                        color: colors.textMuted,
+                      ),
                       padding: EdgeInsets.zero,
                       onSelected: (v) {
                         if (v == 'delete') _deleteConversation(conv);
@@ -201,14 +246,21 @@ class _ConversationLibraryScreenState
                         if (v == 'txt') _export(conv, 'txt');
                       },
                       itemBuilder: (_) => [
-                        const PopupMenuItem(
-                            value: 'md', child: Text("导出 .md")),
-                        const PopupMenuItem(
-                            value: 'txt', child: Text("导出 .txt")),
-                        const PopupMenuItem(
-                            value: 'delete',
-                            child: Text("删除",
-                                style: TextStyle(color: AromaticTheme.error))),
+                        PopupMenuItem(
+                          value: 'md',
+                          child: Text(l10n.get('exportMd')),
+                        ),
+                        PopupMenuItem(
+                          value: 'txt',
+                          child: Text(l10n.get('exportTxt')),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Text(
+                            l10n.get('delete'),
+                            style: const TextStyle(color: AromaticTheme.error),
+                          ),
+                        ),
                       ],
                     )
                   : null,
@@ -220,92 +272,116 @@ class _ConversationLibraryScreenState
     );
   }
 
-  Widget _buildRightPanel(AromaticColors colors) {
+  Widget _buildRightPanel(AromaticColors colors, AppLocalizations l10n) {
     if (_selected == null) {
       return Expanded(
         child: Center(
-          child: Text("选择左侧对话查看详情",
-              style: TextStyle(color: colors.textMuted, fontSize: 14)),
+          child: Text(
+            l10n.get('selectConversationHint'),
+            style: TextStyle(color: colors.textMuted, fontSize: 14),
+          ),
         ),
       );
     }
 
     final conv = _selected!;
     return Expanded(
-      child: Column(children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
               horizontal: AromaticTheme.spaceMD,
-              vertical: AromaticTheme.spaceSM + 4),
-          decoration: BoxDecoration(
-            border: Border(
-                bottom:
-                    BorderSide(color: colors.border.withValues(alpha: 0.3))),
-          ),
-          child: Row(children: [
-            Expanded(
-              child: Text(conv.title,
-                  style: TextStyle(
+              vertical: AromaticTheme.spaceSM + 4,
+            ),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: colors.border.withValues(alpha: 0.3)),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    conv.title,
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: colors.textPrimary)),
-            ),
-            const SizedBox(width: 8),
-            Text("${conv.messageCount} 条消息 · ${_formatDate(conv.createdAt)}",
-                style: TextStyle(fontSize: 11, color: colors.textMuted)),
-          ]),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(AromaticTheme.spaceMD),
-            itemCount: conv.messages.length,
-            itemBuilder: (_, i) {
-              final msg = conv.messages[i];
-              final isUser = msg.role == 'user';
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AromaticTheme.spaceMD),
-                child: Column(
-                  crossAxisAlignment: isUser
-                      ? CrossAxisAlignment.start
-                      : CrossAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 4, right: 4, bottom: 4),
-                      child: Text(msg.sender,
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isUser
-                                  ? colors.accent
-                                  : colors.textMuted)),
+                      color: colors.textPrimary,
                     ),
-                    Container(
-                      constraints:
-                          const BoxConstraints(maxWidth: 560),
-                      padding: const EdgeInsets.all(AromaticTheme.spaceMD),
-                      decoration: AromaticTheme.glassDecoration(
-                          Theme.of(context).brightness),
-                      child: msg.role == 'user'
-                          ? Text(msg.content,
-                              style: TextStyle(
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  l10n
+                      .get('messageCountAndDate')
+                      .replaceAll('{count}', conv.messageCount.toString())
+                      .replaceAll('{date}', _formatDate(conv.createdAt)),
+                  style: TextStyle(fontSize: 11, color: colors.textMuted),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(AromaticTheme.spaceMD),
+              itemCount: conv.messages.length,
+              itemBuilder: (_, i) {
+                final msg = conv.messages[i];
+                final isUser = msg.role == 'user';
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AromaticTheme.spaceMD),
+                  child: Column(
+                    crossAxisAlignment: isUser
+                        ? CrossAxisAlignment.start
+                        : CrossAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 4,
+                          right: 4,
+                          bottom: 4,
+                        ),
+                        child: Text(
+                          msg.sender,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isUser ? colors.accent : colors.textMuted,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 560),
+                        padding: const EdgeInsets.all(AromaticTheme.spaceMD),
+                        decoration: AromaticTheme.glassDecoration(
+                          Theme.of(context).brightness,
+                        ),
+                        child: msg.role == 'user'
+                            ? Text(
+                                msg.content,
+                                style: TextStyle(
                                   color: colors.textPrimary,
                                   fontSize: 14,
-                                  height: 1.5))
-                          : MarkdownBody(
-                              data: msg.content,
-                              selectable: true,
-                              styleSheet: AromaticTheme.markdownStyle(context),
-                            ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                                  height: 1.5,
+                                ),
+                              )
+                            : MarkdownBody(
+                                data: msg.content,
+                                selectable: true,
+                                styleSheet: AromaticTheme.markdownStyle(
+                                  context,
+                                ),
+                              ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 

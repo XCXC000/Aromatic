@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import '../theme/app_theme.dart';
 import '../models/account.dart';
 import '../services/chat_api_client.dart';
+import '../l10n/app_localizations.dart';
 
 enum _ProbeStatus { idle, testing, passed, failed }
 
@@ -37,7 +38,8 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
     _nameCtrl = TextEditingController(text: k?.modelName ?? '');
     _modelIdCtrl = TextEditingController(text: k?.modelId ?? '');
     _baseUrlCtrl = TextEditingController(
-        text: k?.baseUrl ?? ApiFormat.openai.defaultUrl);
+      text: k?.baseUrl ?? ApiFormat.openai.defaultUrl,
+    );
     _apiKeyCtrl = TextEditingController(text: k?.apiKey ?? '');
     _format = k?.format ?? ApiFormat.openai;
     _isActive = k?.isActive ?? true;
@@ -55,7 +57,8 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
   }
 
   void _onFieldChanged() {
-    if (_probeStatus == _ProbeStatus.passed || _probeStatus == _ProbeStatus.failed) {
+    if (_probeStatus == _ProbeStatus.passed ||
+        _probeStatus == _ProbeStatus.failed) {
       setState(() {
         _probeStatus = isEditing ? _ProbeStatus.passed : _ProbeStatus.idle;
         _probeMessage = "";
@@ -113,17 +116,22 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = AromaticTheme.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final canAdd = isEditing || _probeStatus == _ProbeStatus.passed;
 
     return AlertDialog(
-      backgroundColor:
-          isDark ? AromaticTheme.darkOverlay : AromaticTheme.pearlWhite,
+      backgroundColor: isDark
+          ? AromaticTheme.darkOverlay
+          : AromaticTheme.pearlWhite,
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AromaticTheme.radiusLG)),
-      title: Text(isEditing ? "\u7f16\u8f91\u6a21\u578b" : "\u6dfb\u52a0\u6a21\u578b",
-          style: TextStyle(color: colors.textPrimary, fontSize: 18)),
+        borderRadius: BorderRadius.circular(AromaticTheme.radiusLG),
+      ),
+      title: Text(
+        isEditing ? l10n.get('editModel') : l10n.get('addModel'),
+        style: TextStyle(color: colors.textPrimary, fontSize: 18),
+      ),
       content: SizedBox(
         width: 420,
         child: Form(
@@ -135,52 +143,62 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
                 _buildFormatRow(colors),
                 const SizedBox(height: AromaticTheme.spaceMD),
                 _buildTextField(
-                    controller: _nameCtrl,
-                    label: "\u6a21\u578b\u663e\u793a\u540d",
-                    hint: "\u5982: GPT-4o",
-                    colors: colors,
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty ? "\u5fc5\u586b" : null),
+                  controller: _nameCtrl,
+                  label: l10n.get('modelDisplayName'),
+                  hint: l10n.get('modelDisplayNameHint'),
+                  colors: colors,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? l10n.get('requiredField')
+                      : null,
+                ),
                 const SizedBox(height: AromaticTheme.spaceSM),
                 _buildTextField(
-                    controller: _modelIdCtrl,
-                    label: "\u6a21\u578b ID",
-                    hint: "\u5982: gpt-4o",
-                    colors: colors,
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty ? "\u5fc5\u586b" : null),
+                  controller: _modelIdCtrl,
+                  label: l10n.get('modelId'),
+                  hint: l10n.get('modelIdHint'),
+                  colors: colors,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? l10n.get('requiredField')
+                      : null,
+                ),
                 const SizedBox(height: AromaticTheme.spaceSM),
                 _buildTextField(
-                    controller: _baseUrlCtrl,
-                    label: "API \u5730\u5740",
-                    hint: "https://api.openai.com/v1",
-                    colors: colors,
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty ? "\u5fc5\u586b" : null),
+                  controller: _baseUrlCtrl,
+                  label: l10n.get('apiAddress'),
+                  hint: l10n.get('apiAddressHint'),
+                  colors: colors,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? l10n.get('requiredField')
+                      : null,
+                ),
                 const SizedBox(height: AromaticTheme.spaceSM),
                 _buildTextField(
-                    controller: _apiKeyCtrl,
-                    label: "API Key",
-                    hint: "sk-...",
-                    colors: colors,
-                    obscure: _obscureKey,
-                    suffix: IconButton(
-                        icon: Icon(
-                            _obscureKey
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            size: 18,
-                            color: colors.textMuted),
-                        onPressed: () =>
-                            setState(() => _obscureKey = !_obscureKey)),
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty ? "\u5fc5\u586b" : null),
+                  controller: _apiKeyCtrl,
+                  label: "API Key",
+                  hint: "sk-...",
+                  colors: colors,
+                  obscure: _obscureKey,
+                  suffix: IconButton(
+                    icon: Icon(
+                      _obscureKey
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 18,
+                      color: colors.textMuted,
+                    ),
+                    onPressed: () => setState(() => _obscureKey = !_obscureKey),
+                  ),
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? l10n.get('requiredField')
+                      : null,
+                ),
                 const SizedBox(height: AromaticTheme.spaceSM),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text("\u8bbe\u4e3a\u6d3b\u8dc3",
-                      style: TextStyle(
-                          color: colors.textPrimary, fontSize: 14)),
+                  title: Text(
+                    l10n.get('setAsActive'),
+                    style: TextStyle(color: colors.textPrimary, fontSize: 14),
+                  ),
                   value: _isActive,
                   activeColor: colors.accent,
                   onChanged: (v) => setState(() => _isActive = v),
@@ -189,7 +207,7 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
                 // ---- 测试连接区域 ----
                 if (!isEditing) ...[
                   const SizedBox(height: AromaticTheme.spaceSM),
-                  _buildProbeSection(colors, isDark),
+                  _buildProbeSection(colors, isDark, l10n),
                 ],
               ],
             ),
@@ -198,26 +216,29 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("\u53d6\u6d88",
-                style: TextStyle(color: colors.textMuted))),
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            l10n.get('cancel'),
+            style: TextStyle(color: colors.textMuted),
+          ),
+        ),
         if (!isEditing)
           OutlinedButton(
-            onPressed: _probeStatus == _ProbeStatus.testing
-                ? null
-                : _runProbe,
+            onPressed: _probeStatus == _ProbeStatus.testing ? null : _runProbe,
             style: OutlinedButton.styleFrom(
               foregroundColor: colors.accent,
-              side: BorderSide(
-                  color: colors.accent.withValues(alpha: 0.4)),
+              side: BorderSide(color: colors.accent.withValues(alpha: 0.4)),
             ),
             child: _probeStatus == _ProbeStatus.testing
                 ? SizedBox(
                     width: 14,
                     height: 14,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: colors.accent))
-                : const Text("\u6d4b\u8bd5\u8fde\u63a5"),
+                      strokeWidth: 2,
+                      color: colors.accent,
+                    ),
+                  )
+                : Text(l10n.get('testConnection')),
           ),
         FilledButton(
           onPressed: canAdd ? _submit : null,
@@ -227,13 +248,17 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
                 ? AromaticTheme.darkBase
                 : AromaticTheme.pearlWhite,
           ),
-          child: Text(isEditing ? "\u4fdd\u5b58" : "\u6dfb\u52a0"),
+          child: Text(isEditing ? l10n.get('save') : l10n.get('add')),
         ),
       ],
     );
   }
 
-  Widget _buildProbeSection(AromaticColors colors, bool isDark) {
+  Widget _buildProbeSection(
+    AromaticColors colors,
+    bool isDark,
+    AppLocalizations l10n,
+  ) {
     final status = _probeStatus;
     Widget indicator;
     Color indicatorColor;
@@ -241,25 +266,33 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
     switch (status) {
       case _ProbeStatus.testing:
         indicator = SizedBox(
-            width: 14,
-            height: 14,
-            child: CircularProgressIndicator(
-                strokeWidth: 2, color: colors.accent));
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: colors.accent,
+          ),
+        );
         indicatorColor = colors.accent;
         break;
       case _ProbeStatus.passed:
-        indicator = const Icon(Icons.check_circle, size: 16,
-            color: AromaticTheme.success);
+        indicator = const Icon(
+          Icons.check_circle,
+          size: 16,
+          color: AromaticTheme.success,
+        );
         indicatorColor = AromaticTheme.success;
         break;
       case _ProbeStatus.failed:
-        indicator = const Icon(Icons.error, size: 16,
-            color: AromaticTheme.error);
+        indicator = const Icon(
+          Icons.error,
+          size: 16,
+          color: AromaticTheme.error,
+        );
         indicatorColor = AromaticTheme.error;
         break;
       case _ProbeStatus.idle:
-        indicator = Icon(Icons.info_outline, size: 16,
-            color: colors.textMuted);
+        indicator = Icon(Icons.info_outline, size: 16, color: colors.textMuted);
         indicatorColor = colors.textMuted;
         break;
     }
@@ -270,26 +303,31 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
         color: indicatorColor.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
         border: Border.all(
-            color: indicatorColor.withValues(alpha: 0.2), width: 1),
+          color: indicatorColor.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
-      child: Row(children: [
-        indicator,
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            status == _ProbeStatus.idle
-                ? "\u6dfb\u52a0\u524d\u9700\u5148\u6d4b\u8bd5\u8fde\u63a5"
-                : status == _ProbeStatus.testing
-                    ? "\u6b63\u5728\u68c0\u6d4b\u8fde\u63a5\u2026"
-                    : _probeMessage,
-            style: TextStyle(
+      child: Row(
+        children: [
+          indicator,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              status == _ProbeStatus.idle
+                  ? l10n.get('probeIdleHint')
+                  : status == _ProbeStatus.testing
+                  ? l10n.get('probeTestingHint')
+                  : _probeMessage,
+              style: TextStyle(
                 fontSize: 12,
                 color: status == _ProbeStatus.idle
                     ? colors.textMuted
-                    : indicatorColor),
+                    : indicatorColor,
+              ),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -307,27 +345,26 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
           borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
             decoration: BoxDecoration(
               color: selected
                   ? colors.accent.withValues(alpha: 0.15)
                   : Colors.transparent,
-              borderRadius:
-                  BorderRadius.circular(AromaticTheme.radiusSM),
+              borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
               border: Border.all(
                 color: selected
                     ? colors.accent.withValues(alpha: 0.35)
                     : colors.border.withValues(alpha: 0.3),
               ),
             ),
-            child: Text(f.label,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: selected ? colors.accent : colors.textMuted,
-                    fontWeight: selected
-                        ? FontWeight.w600
-                        : FontWeight.normal)),
+            child: Text(
+              f.label,
+              style: TextStyle(
+                fontSize: 12,
+                color: selected ? colors.accent : colors.textMuted,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
           ),
         );
       }).toList(),
@@ -356,21 +393,26 @@ class _AddKeyDialogState extends State<AddKeyDialog> {
         suffixIcon: suffix,
         filled: true,
         fillColor: colors.inputFill.withValues(alpha: 0.5),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
-            borderSide: BorderSide(color: colors.border)),
+          borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
+          borderSide: BorderSide(color: colors.border),
+        ),
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
-            borderSide:
-                BorderSide(color: colors.border.withValues(alpha: 0.3))),
+          borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
+          borderSide: BorderSide(color: colors.border.withValues(alpha: 0.3)),
+        ),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
-            borderSide: BorderSide(color: colors.accent)),
+          borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
+          borderSide: BorderSide(color: colors.accent),
+        ),
         errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
-            borderSide: const BorderSide(color: AromaticTheme.error)),
+          borderRadius: BorderRadius.circular(AromaticTheme.radiusSM),
+          borderSide: const BorderSide(color: AromaticTheme.error),
+        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 import 'services/prompt_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
@@ -19,12 +21,14 @@ void main() async {
     effect: WindowEffect.acrylic,
     color: const Color(0xEE020008),
   );
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness.light,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
   runApp(const AromaticApp());
 }
 
@@ -48,6 +52,7 @@ class AromaticApp extends StatefulWidget {
 class _AromaticAppState extends State<AromaticApp> {
   ThemeMode _themeMode = ThemeMode.dark;
   bool _useAcrylic = true;
+  String _locale = 'zh';
 
   bool get useAcrylic => _useAcrylic;
 
@@ -65,31 +70,34 @@ class _AromaticAppState extends State<AromaticApp> {
     _updateAcrylic();
   }
 
+  void setLocale(String newLocale) async {
+    await PromptService.instance.reload(newLocale);
+    setState(() => _locale = newLocale);
+  }
+
   void _updateAcrylic() async {
     final isDark = _themeMode == ThemeMode.dark;
     if (_useAcrylic) {
       await Window.setEffect(
         effect: WindowEffect.acrylic,
-        color: isDark
-            ? const Color(0xEE020008)
-            : const Color(0xDDB8A8D8),
+        color: isDark ? const Color(0xEE020008) : const Color(0xDDB8A8D8),
       );
     } else {
-      // 降级：纯色无模糊，但颜色仍然精致
       await Window.setEffect(
         effect: WindowEffect.disabled,
-        color: isDark
-            ? const Color(0xEE10081C)
-            : const Color(0xEEF8F4FE),
+        color: isDark ? const Color(0xEE10081C) : const Color(0xEEF8F4FE),
       );
     }
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness:
-          isDark ? Brightness.light : Brightness.dark,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: isDark
+            ? Brightness.light
+            : Brightness.dark,
+      ),
+    );
   }
 
   @override
@@ -100,6 +108,14 @@ class _AromaticAppState extends State<AromaticApp> {
       theme: AromaticTheme.lightTheme,
       darkTheme: AromaticTheme.darkTheme,
       themeMode: _themeMode,
+      locale: Locale(_locale),
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('zh'), Locale('en')],
       initialRoute: "/",
       routes: {
         "/": (_) => HomeScreen(onToggleTheme: toggleTheme),
@@ -107,11 +123,13 @@ class _AromaticAppState extends State<AromaticApp> {
           onToggleTheme: toggleTheme,
           useAcrylic: _useAcrylic,
           onToggleAcrylic: toggleAcrylic,
+          currentLocale: _locale,
+          onLocaleChanged: setLocale,
         ),
         "/conversations": (_) => const ConversationLibraryScreen(),
-        "/terminal": (_) => const TerminalScreen(),        "/packs": (_) => const PackScreen(),
+        "/terminal": (_) => const TerminalScreen(),
+        "/packs": (_) => const PackScreen(),
       },
     );
   }
 }
-
